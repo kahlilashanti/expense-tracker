@@ -18,19 +18,25 @@ import AddTransaction from './components/AddTransaction.vue';
 
 import {useToast} from 'vue-toastification';
 //to make it reactive use ref
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 
 //initialize toast
 const toast = useToast();
 
 
 //Composition API version
-const transactions= ref([
-                {id: 1, text: 'Flowers', amount: -19.99},
-                {id: 2, text: 'Salary', amount: 209.99},
-                {id: 3, text: 'Book', amount: -12.99},
-                {id: 4, text: 'Squirt Gun', amount: 22 },
-            ]);
+const transactions= ref([]);
+
+//lifecycle method that checks localstorage to see if any transactions exist and if so, show them
+onMounted(() => {
+    //check localstorage, and only strings are in localstorage and this will turn it back into an array
+    const savedTransactions = JSON.parse(localStorage.getItem
+    ('transactions'));
+
+    if(savedTransactions){
+        transactions.value = savedTransactions;
+    }
+});
 
 
 //get total
@@ -69,6 +75,10 @@ const handleTransactionSubmitted = (transactionData) => {
         text: transactionData.text, 
         amount: transactionData.amount
     });
+    //save to localStorage
+    saveTransactionsToLocalStorage();
+
+
     //just to be sure the generate id function is working
     console.log(generateUniqueId())
     toast.success('Your transaction has been added');
@@ -85,7 +95,16 @@ const handleTransactionDeleted = (id) => {
     transactions.value = transactions.value.filter((transaction) =>
     transaction.id !== id);
 
+    //save remaining transactions to localStorage
+    saveTransactionsToLocalStorage();
+
     toast.success('Transaction deleted');
 }
+
+//create a function that saves or removes from localstorage
+    const saveTransactionsToLocalStorage = () => {
+        localStorage.setItem('transactions', JSON.stringify(transactions.
+        value));
+    }
 
 </script>
